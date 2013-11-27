@@ -7,7 +7,7 @@ module Cms
       if md = method_name.to_s.match(/^create_(.+)$/)
         # We search the CMS namespace first.
         # for things like DynamicPortlets "Cms::DynamicPortlet".constantize returns "DynamicPortlet"
-        model_name = "Cms/#{md[1]}".classify.constantize.name        
+        model_name = model_class(md[1]).name
         begin
           #Make sure this is an active record class
           super unless model_name.classify.constantize.ancestors.include?(ActiveRecord::Base)
@@ -30,6 +30,14 @@ module Cms
       model = model_name.classify.constantize.new(data)
       model.save!
       @data[model_storage_name][record_name] = model
+    end
+
+    private
+
+    def model_class(model_name)
+      "Cms/#{model_name}".classify.constantize
+    rescue NameError => e
+      model_name.classify.constantize
     end
   end
 end
